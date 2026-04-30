@@ -1,24 +1,55 @@
-from validators.python_validator import validate_python
-from formatter.python_formatter import format_python
-from ai.ai_review import ai_review
+from core.registry import LANGUAGE_REGISTRY
 
-language = input("Language: ").lower()
-print("Paste code (Ctrl+D to finish):")
 
-code = ""
-while True:
+def main():
+    print("=== Level‑1 Code Validator & Formatter ===\n")
+
+    print("Supported languages:")
+    for lang in LANGUAGE_REGISTRY:
+        print(f"- {lang}")
+
+    language = input("\nSelect language: ").strip().lower()
+
+    if language not in LANGUAGE_REGISTRY:
+        print("\n❌ Language not supported.")
+        return
+
+    print("\nPaste your code below.")
+    print("Press Ctrl + D (Linux/macOS) when done.\n")
+
+    code = ""
     try:
-        code += input() + "\n"
+        while True:
+            code += input() + "\n"
     except EOFError:
-        break
+        pass
 
-valid, errors = validate_python(code)
+    if not code.strip():
+        print("\n❌ No code provided.")
+        return
 
-if valid:
-    formatted = format_python(code)
-    print("\n✅ Formatted Code:\n", formatted)
-else:
-    print("\n❌ Errors:", errors)
+    validator = LANGUAGE_REGISTRY[language]["validate"]
+    formatter = LANGUAGE_REGISTRY[language]["format"]
 
-print("\n🤖 AI Review:")
-print(ai_review(language, code))
+    valid, errors = validator(code)
+
+    if not valid:
+        print("\n❌ Validation Errors:")
+        for err in errors:
+            print(f"- {err}")
+        return
+
+    formatted_code = formatter(code)
+
+    print("\n✅ Code is valid.\n")
+    print("✅ Formatted Code:\n")
+    print(formatted_code)
+
+    print(
+        "\n💡 Tip: Paste this formatted code into Copilot / Claude / ChatGPT "
+        "for logic improvement and best-practice suggestions."
+    )
+
+
+if __name__ == "__main__":
+    main()
